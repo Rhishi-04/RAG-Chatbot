@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Regulatory Assistant Chat</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 700px;
+      margin: 20px auto;
+      padding: 10px;
+      background: #f0f2f5;
+    }
+    h1, h2 {
+      text-align: center;
+    }
+    #chat {
+      border: 1px solid #ccc;
+      background: white;
+      height: 400px;
+      overflow-y: auto;
+      padding: 10px;
+      border-radius: 6px;
+      margin-bottom: 10px;
+      white-space: pre-wrap;
+    }
+    .message {
+      margin-bottom: 15px;
+      max-width: 80%;
+      padding: 10px;
+      border-radius: 8px;
+    }
+    .user {
+      background-color: #d1e7dd;
+      text-align: right;
+      margin-left: auto;
+    }
+    .assistant {
+      background-color: #e2e3e5;
+      text-align: left;
+      margin-right: auto;
+    }
+    .metadata {
+      font-size: 0.8em;
+      color: #555;
+      margin-top: 4px;
+    }
+    label {
+      display: block;
+      margin: 10px 0 5px;
+    }
+    input[type="text"], textarea {
+      width: 100%;
+      padding: 8px;
+      font-size: 1em;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 1em;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    #askBtn {
+      background-color: #0d6efd;
+      color: white;
+    }
+    #uploadBtn {
+      background-color: #198754;
+      color: white;
+    }
+    #uploadMessage {
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Regulatory Assistant Chat</h1>
+
+  <label for="sessionIdInput">Session ID:</label>
+  <input type="text" id="sessionIdInput" value="default" />
+
+  <div id="chat">No conversation yet. Ask a question!</div>
+
+  <label for="questionInput">Your Question:</label>
+  <textarea id="questionInput" rows="3" placeholder="Type your question here..."></textarea>
+
+  <button id="askBtn">Ask</button>
+
+  <hr />
+
+  <h2>Upload Document</h2>
+  <input type="file" id="fileInput" />
+  <button id="uploadBtn">Upload</button>
+  <div id="uploadMessage"></div>
+
+  <script>
+    const API_BASE = "http://localhost:8000";
+
+    const chatEl = document.getElementById("chat");
+    const questionInput = document.getElementById("questionInput");
+    const askBtn = document.getElementById("askBtn");
+    const sessionIdInput = document.getElementById("sessionIdInput");
+
+    const fileInput = document.getElementById("fileInput");
+    const uploadBtn = document.getElementById("uploadBtn");
+    const uploadMessageEl = document.getElementById("uploadMessage");
+
+    let chatHistory = [];
+
+    function appendMessage(role, content, confidence, timestamp) {
+      if (chatHistory.length === 0) chatEl.textContent = ""; // clear placeholder
+      chatHistory.push({ role, content, confidence, timestamp });
+
+      const msgDiv = document.createElement("div");
+      msgDiv.classList.add("message", role);
+
+      const strong = document.createElement("strong");
+      strong.textContent = role === "user" ? "You" : "Assistant";
+      msgDiv.appendChild(strong);
+
+      const contentDiv = document.createElement("div");
+      contentDiv.textContent = content;
+      msgDiv.appendChild(contentDiv);
+
+      if (confidence !== undefined && timestamp !== undefined) {
+        const meta = document.createElement("div");
+        meta.className = "metadata";
+        const timeString = new Date(timestamp).toLocaleString();
+        meta.textContent = `Confidence: ${confidence} | ${timeString}`;
+        msgDiv.appendChild(meta);
+      }
+
+      chatEl.appendChild(msgDiv);
+      chatEl.scrollTop = chatEl.scrollHeight;
+    }
+
+    async function askQuestion() {
+      const question = questionInput.value.trim();
+      if (!question) return alert("Please enter a question.");
+
+      askBtn.disabled = true;
+      askBtn.textContent = "Thinking...";
+      
+      const session_id = sessionIdInput.value.trim() || "default";
+   
+      try {
+        const res = await fetch(`${API_BASE}/api/`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ question, session_id }),
+        });
+        if (!res.ok) throw new Error(`Server error: ${res.status}`);
+
+        const data = await res.json();
+        appendMessage("user", question);
+        appendMessage("assistant", data.answer, data.confidence, data.timestamp);
+        questionInput.value = "";
+      } catch (err) {
+        alert("Error: " + err.message);
+      } finally {
+        askBtn.disabled = false;
+        askBtn.textContent = "Ask";
+      }
+    }
+
+    askBtn.addEventListener("click", askQuestion);
+
+    questionInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        askQuestion();
+      }
+    });
+
+    // Upload file
+    uploadBtn.addEventListener("click", async () => {
+      if (fileInput.files.length === 0) {
+        alert("Please select a file to upload.");
+        return;
+      }
+
+      uploadBtn.disabled = true;
+      uploadMessageEl.textContent = "Uploading...";
+
+      const formData = new FormData();
+      formData.append("file", fileInput.files[0]);
+
+      try {
+        const res = await fetch(`${API_BASE}/upload-doc`, {
+          method: "POST",
+          body: formData,
+        });
+        if (!res.ok) throw new Error(`Upload failed with status ${res.status}`);
+        const data = await res.json();
+        uploadMessageEl.textContent = data.message;
+        fileInput.value = "";
+      } catch (err) {
+        uploadMessageEl.textContent = "Upload error: " + err.message;
+      } finally {
+        uploadBtn.disabled = false;
+      }
+    });
+  </script>
+
+</body>
+</html>

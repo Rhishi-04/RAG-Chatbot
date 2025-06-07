@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+sentence-transformers
+faiss-cpu
+numpy
+tqdm
+requests
+pillow
+pytesseract
+python-multipart
+pydantic
+numpy
+fastapi[all]
