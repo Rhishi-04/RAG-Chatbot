@@ -90,6 +90,17 @@ python start.py  # Opens browser automatically
 
 > 📊 **For detailed technical architecture, see [TECH_DIAGRAM.md](TECH_DIAGRAM.md)**
 
+## 🐳 Docker Deployment
+
+```bash
+# Quick start with Docker Compose
+docker-compose up --build
+
+# Access at http://localhost:8000/index.html
+```
+
+See [DOCKER_SETUP.md](DOCKER_SETUP.md) for detailed instructions.
+
 ## Contributing
 
 1. Fork the repository
