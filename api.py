@@ -7,6 +7,8 @@ import faiss
 import numpy as np
 import requests
 from fastapi import FastAPI, HTTPException
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from sentence_transformers import SentenceTransformer, util
 import fitz  # pymupdf
@@ -24,9 +26,20 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Serve static frontend
+@app.get("/")
+async def root():
+    return FileResponse("index.html")
+
+# Mount static files for Hugging Face Spaces
+try:
+    app.mount("/static", StaticFiles(directory="."), name="static")
+except:
+    pass
+
 # === Config ===
 EMBEDDING_MODEL_NAME = "sentence-transformers/multi-qa-MiniLM-L6-cos-v1"
-OLLAMA_MODEL = "mistral"
+OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "mistral:7b-instruct-q4_K_M")
 
 # === Load Models Only (No Persistent Storage) ===
 # We only load the embedding model, not persistent data
