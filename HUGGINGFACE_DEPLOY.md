@@ -6,47 +6,58 @@
 
 ## 🚀 Step-by-Step Deployment
 
-### 1. Create a Hugging Face Space
+### Quick Deploy Script (Recommended)
+
+**ONE command does it all!**
+
+```bash
+# Run the deployment script
+./deploy_to_hf.sh YOUR_USERNAME YOUR_SPACE_NAME
+
+# Example:
+./deploy_to_hf.sh rhishi-04 rag-chatbot
+```
+
+The script will:
+1. Guide you to create the Space (manual one-time step)
+2. Clone the repository
+3. Copy all files
+4. Commit and push
+5. Show you the deployment URL
+
+**That's it!** Just wait 15 minutes for the build. 🎉
+
+---
+
+### Manual Deploy (Alternative)
+
+#### 1. Create a Hugging Face Space
 
 1. Go to https://huggingface.co/spaces
 2. Click **"Create new Space"**
 3. Fill in:
-   - **Space name**: `your-rag-chatbot` (or any unique name)
+   - **Space name**: `your-rag-chatbot`
    - **License**: MIT
-   - **SDK**: **Docker** ← Important!
-   - **Hardware**: **CPU basic** (free tier)
+   - **SDK**: **Docker**
+   - **Hardware**: **CPU basic**
 
-### 2. Clone Your Space Repository
+#### 2. Clone and Copy Files
 
 ```bash
 git clone https://huggingface.co/spaces/YOUR_USERNAME/YOUR_SPACE_NAME
 cd YOUR_SPACE_NAME
-```
 
-### 3. Copy Project Files
+# Copy files
+cp ../Dockerfile.spaces Dockerfile
+cp ../entrypoint.sh ./
+cp ../api.py ./
+cp ../index.html ./
+cp ../requirements.txt ./
+cp -r ../data/ ./
 
-Copy these files from your project:
-- `Dockerfile.spaces` (rename to `Dockerfile`)
-- `entrypoint.sh`
-- `api.py`
-- `index.html`
-- `requirements.txt`
-- `data/` folder
-
-```bash
-cp Dockerfile.spaces Dockerfile
-cp entrypoint.sh ./
-cp api.py ./
-cp index.html ./
-cp requirements.txt ./
-cp -r data/ ./
-```
-
-### 4. Commit and Push
-
-```bash
+# Commit and push
 git add .
-git commit -m "Deploy RAG chatbot to Hugging Face Spaces"
+git commit -m "Deploy RAG chatbot"
 git push
 ```
 
