@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  rag-chatbot:
+    build: .
+    ports:
+      - "8000:8000"   # API
+      - "11434:11434" # Ollama
+    volumes:
+      - ./data/documents:/app/data/documents
+      - ollama-data:/root/.ollama
+    restart: unless-stopped
+    environment:
+      - PORT=8000
+
+volumes:
+  ollama-data:
+
